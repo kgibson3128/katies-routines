@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Katie's Routines">
+<title>Katie's Routines</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blush: #e8c4b4; --rose: #c4806a; --deep: #3a2e28; --mid: #4a3b33;
+    --light: #b08b7a; --bg: #f9f5f2; --card: #ffffff; --border: #f0e8e3; --red: #e05050;
+  }
+  body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--deep); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+  .screen { display: none; width: 100%; max-width: 420px; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+  .eyebrow { font-size: 0.65rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--light); font-weight: 500; margin-bottom: 8px; }
+  /* MENU */
+  .menu-header { background: white; border-bottom: 1px solid var(--border); padding: 32px 24px 24px; text-align: center; }
+  .menu-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--deep); }
+  .menu-header h1 em { font-style: italic; color: var(--rose); }
+  .menu-header .sub { font-size: 0.78rem; color: var(--light); font-weight: 300; margin-top: 6px; }
+  .menu-list { flex: 1; padding: 20px 16px; overflow-y: auto; }
+  .menu-item { display: flex; align-items: center; gap: 16px; padding: 18px 20px; background: white; border-radius: 14px; margin-bottom: 10px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+  .menu-item:hover { border-color: var(--blush); box-shadow: 0 2px 12px rgba(196,128,106,0.1); transform: translateY(-1px); }
+  .menu-emoji { font-size: 1.6rem; flex-shrink: 0; }
+  .menu-info { flex: 1; }
+  .menu-name { font-size: 0.92rem; font-weight: 500; color: var(--deep); margin-bottom: 3px; }
+  .menu-meta { font-size: 0.72rem; color: var(--light); font-weight: 300; }
+  .menu-arrow { font-size: 0.9rem; color: var(--blush); }
+  /* OVERVIEW */
+  .ov-header { background: white; border-bottom: 1px solid var(--border); padding: 20px 24px 24px; text-align: center; }
+  .ov-back { background: none; border: none; font-size: 0.75rem; color: var(--light); cursor: pointer; font-family: 'Jost', sans-serif; letter-spacing: 0.5px; padding: 4px 0; display: block; margin-bottom: 6px; }
+  .ov-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 300; color: var(--deep); margin-top: 8px; margin-bottom: 4px; }
+  .ov-header h2 em { font-style: italic; color: var(--rose); }
+  .ov-sub { font-size: 0.78rem; color: var(--light); font-weight: 300; }
+  .steps-list { flex: 1; padding: 20px 16px; overflow-y: auto; }
+  .step-item { display: flex; align-items: center; gap: 14px; padding: 13px 16px; background: white; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--bg); border: 1px solid var(--blush); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 500; color: var(--rose); flex-shrink: 0; }
+  .step-info { flex: 1; }
+  .step-name { font-size: 0.88rem; font-weight: 400; color: var(--deep); }
+  .step-dur { font-size: 0.72rem; color: var(--light); font-weight: 300; margin-top: 2px; }
+  .step-emoji { font-size: 1.1rem; flex-shrink: 0; }
+  .ov-footer { padding: 20px 16px 32px; background: white; border-top: 1px solid var(--border); }
+  .start-btn { width: 100%; padding: 16px; background: var(--rose); color: white; border: none; border-radius: 14px; font-family: 'Jost', sans-serif; font-size: 0.9rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .start-btn:hover { background: #b36e5a; }
+  /* TIMER */
+  .timer-screen { background: var(--bg); }
+  .timer-header { background: white; border-bottom: 1px solid var(--border); padding: 20px 20px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .back-btn { background: none; border: none; font-size: 0.75rem; color: var(--light); cursor: pointer; font-family: 'Jost', sans-serif; letter-spacing: 0.5px; padding: 4px 0; }
+  .progress-text { font-size: 0.72rem; color: var(--light); letter-spacing: 1px; font-weight: 500; }
+  .progress-bar-wrap { background: white; padding: 0 20px 16px; border-bottom: 1px solid var(--border); }
+  .progress-bar-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--rose); border-radius: 2px; transition: width 0.4s ease; }
+  .timer-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; text-align: center; }
+  .current-emoji { font-size: 2.5rem; margin-bottom: 16px; }
+  .current-step-name { font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 300; color: var(--deep); margin-bottom: 6px; line-height: 1.2; }
+  .current-step-name em { font-style: italic; color: var(--rose); }
+  .next-up { font-size: 0.72rem; color: var(--light); letter-spacing: 0.5px; margin-bottom: 40px; font-weight: 300; }
+  .timer-circle-wrap { position: relative; width: 200px; height: 200px; margin-bottom: 40px; }
+  .timer-svg { width: 200px; height: 200px; transform: rotate(-90deg); }
+  .timer-track { fill: none; stroke: var(--border); stroke-width: 6; }
+  .timer-progress { fill: none; stroke: var(--rose); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.3s ease; }
+  .timer-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .timer-time { font-family: 'Cormorant Garamond', serif; font-size: 2.8rem; font-weight: 300; color: var(--deep); line-height: 1; transition: color 0.3s ease; }
+  .timer-time.overtime { color: var(--red); }
+  .timer-label { font-size: 0.65rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--light); margin-top: 4px; font-weight: 500; }
+  .timer-label.overtime { color: var(--red); }
+  .timer-circle-wrap.alert .timer-progress { stroke: var(--red); }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  .timer-circle-wrap.alert { animation: pulse 1.5s ease-in-out infinite; }
+  .timer-buttons { display: flex; gap: 12px; width: 100%; }
+  .pause-btn { flex: 1; padding: 14px; background: white; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 0.82rem; font-weight: 500; color: var(--mid); cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s; }
+  .pause-btn:hover { background: var(--bg); }
+  .next-btn { flex: 2; padding: 14px; background: var(--rose); border: none; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 0.82rem; font-weight: 500; color: white; cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s; }
+  .next-btn:hover { background: #b36e5a; }
+  .upcoming { background: white; border-top: 1px solid var(--border); padding: 16px 20px; }
+  .upcoming-label { font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--light); font-weight: 500; margin-bottom: 10px; }
+  .upcoming-items { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .upcoming-items::-webkit-scrollbar { display: none; }
+  .upcoming-item { background: var(--bg); border-radius: 8px; padding: 7px 12px; white-space: nowrap; font-size: 0.72rem; color: var(--mid); font-weight: 300; border: 1px solid var(--border); flex-shrink: 0; }
+  .upcoming-item .ui-time { color: var(--light); font-size: 0.65rem; margin-top: 2px; }
+  /* COMPLETE */
+  .complete-screen { background: white; align-items: center; justify-content: center; text-align: center; padding: 48px 32px; }
+  .complete-icon { font-size: 3.5rem; margin-bottom: 24px; }
+  .complete-eyebrow { font-size: 0.65rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--light); font-weight: 500; margin-bottom: 12px; }
+  .complete-title { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 300; color: var(--deep); margin-bottom: 8px; line-height: 1.2; }
+  .complete-title em { font-style: italic; color: var(--rose); }
+  .complete-subtitle { font-size: 0.85rem; color: var(--light); font-weight: 300; margin-bottom: 40px; line-height: 1.6; }
+  .complete-stat { background: var(--bg); border-radius: 12px; padding: 16px 24px; margin-bottom: 12px; width: 100%; text-align: left; border: 1px solid var(--border); }
+  .stat-label { font-size: 0.65rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--light); font-weight: 500; margin-bottom: 4px; }
+  .stat-value { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 300; color: var(--deep); }
+  .complete-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 32px; }
+  .again-btn { width: 100%; padding: 16px; background: var(--rose); color: white; border: none; border-radius: 14px; font-family: 'Jost', sans-serif; font-size: 0.9rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .again-btn:hover { background: #b36e5a; }
+  .all-btn { width: 100%; padding: 14px; background: white; color: var(--mid); border: 1.5px solid var(--border); border-radius: 14px; font-family: 'Jost', sans-serif; font-size: 0.85rem; font-weight: 400; cursor: pointer; transition: all 0.2s; }
+  .all-btn:hover { background: var(--bg); }
+  @media (max-width: 420px) { .screen { max-width: 100%; } }
+</style>
+</head>
+<body>
+
+<!-- MENU -->
+<div id="screen-menu" class="screen active">
+  <div class="menu-header">
+    <div class="eyebrow">Katie's Routines</div>
+    <h1>What's <em>next?</em></h1>
+    <div class="sub">Choose a routine to begin</div>
+  </div>
+  <div class="menu-list" id="menu-list"></div>
+</div>
+
+<!-- OVERVIEW -->
+<div id="screen-overview" class="screen">
+  <div class="ov-header">
+    <button class="ov-back" onclick="showScreen('screen-menu')">← All Routines</button>
+    <div class="eyebrow">Katie's Routines</div>
+    <h2 id="ov-title"></h2>
+    <div class="ov-sub" id="ov-sub"></div>
+  </div>
+  <div class="steps-list" id="steps-list"></div>
+  <div class="ov-footer">
+    <button class="start-btn" onclick="startRoutine()">Begin Routine</button>
+  </div>
+</div>
+
+<!-- TIMER -->
+<div id="screen-timer" class="screen timer-screen">
+  <div class="timer-header">
+    <button class="back-btn" onclick="goBackToOverview()">← Overview</button>
+    <div class="progress-text" id="progress-text"></div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progress-bar"></div>
+    </div>
+  </div>
+  <div class="timer-main">
+    <div class="current-emoji" id="current-emoji"></div>
+    <div class="current-step-name" id="current-step-name"></div>
+    <div class="next-up" id="next-up"></div>
+    <div class="timer-circle-wrap" id="timer-circle-wrap">
+      <svg class="timer-svg" viewBox="0 0 200 200">
+        <circle class="timer-track" cx="100" cy="100" r="88"/>
+        <circle class="timer-progress" id="timer-arc" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-display">
+        <div class="timer-time" id="timer-time">0:00</div>
+        <div class="timer-label" id="timer-label">remaining</div>
+      </div>
+    </div>
+    <div class="timer-buttons">
+      <button class="pause-btn" id="pause-btn" onclick="togglePause()">Pause</button>
+      <button class="next-btn" onclick="nextStep()">Next Step ›</button>
+    </div>
+  </div>
+  <div class="upcoming">
+    <div class="upcoming-label">Coming up</div>
+    <div class="upcoming-items" id="upcoming-items"></div>
+  </div>
+</div>
+
+<!-- COMPLETE -->
+<div id="screen-complete" class="screen complete-screen">
+  <div class="complete-icon" id="complete-icon">🌸</div>
+  <div class="complete-eyebrow">Routine Complete</div>
+  <div class="complete-title" id="complete-title"></div>
+  <div class="complete-subtitle" id="complete-subtitle"></div>
+  <div class="complete-stat">
+    <div class="stat-label">Time taken</div>
+    <div class="stat-value" id="stat-total-time">—</div>
+  </div>
+  <div class="complete-stat">
+    <div class="stat-label">Steps completed</div>
+    <div class="stat-value" id="stat-steps">—</div>
+  </div>
+  <div class="complete-buttons">
+    <button class="again-btn" onclick="startRoutine()">Run Again</button>
+    <button class="all-btn" onclick="showScreen('screen-menu')">← All Routines</button>
+  </div>
+</div>
+
+<script>
+  const routines = [
+    {
+      id: "morning", name: "Morning Routine", emoji: "🌅",
+      completeIcon: "🌸", completeTitle: "You're <em>ready</em>",
+      completeSubtitle: "Morning routine done.<br>Go make it a great day.",
+      steps: [
+        { name: "Brush teeth", duration: 3, emoji: "🪥" },
+        { name: "Contact lenses", duration: 2, emoji: "👁" },
+        { name: "Skincare", duration: 4, emoji: "✨" },
+        { name: "Makeup and hair", duration: 5, emoji: "💄" },
+        { name: "Tidy up", duration: 4, emoji: "🧹" },
+        { name: "Weigh-in", duration: 3, emoji: "⚖" },
+        { name: "Get dressed", duration: 4, emoji: "👗" },
+        { name: "Accessories", duration: 1, emoji: "💍" },
+        { name: "Perfume", duration: 1, emoji: "🌸" },
+        { name: "Drink water", duration: 1, emoji: "💧" },
+        { name: "Pack bag", duration: 2, emoji: "🎒" }
+      ]
+    },
+    {
+      id: "oss-morning", name: "OSS Morning Planning", emoji: "📋",
+      completeIcon: "✅", completeTitle: "You're <em>set</em>",
+      completeSubtitle: "Day planned.<br>Go make it happen.",
+      steps: [
+        { name: "Check shared timetable", duration: 2, emoji: "📅" },
+        { name: "Check notes and parking lot", duration: 2, emoji: "📝" },
+        { name: "Review ongoing situations", duration: 2, emoji: "🚨" },
+        { name: "Brain dump on paper", duration: 3, emoji: "🧠" },
+        { name: "Build Todoist priority list", duration: 4, emoji: "✅" },
+        { name: "Sense check - Zoom, visitors, delegations", duration: 2, emoji: "🔍" }
+      ]
+    },
+    {
+      id: "oss-winddown", name: "OSS Wind-down", emoji: "📝",
+      completeIcon: "🌿", completeTitle: "Day <em>done</em>",
+      completeSubtitle: "Work is wrapped up.<br>Your evening is yours.",
+      steps: [
+        { name: "Review Todoist", duration: 3, emoji: "✅" },
+        { name: "Update parking lot", duration: 3, emoji: "🅿" },
+        { name: "Check timetable and prep morning meeting", duration: 6, emoji: "📅" },
+        { name: "Messages and emails", duration: 5, emoji: "💬" },
+        { name: "Close tabs, tidy up, phone away", duration: 3, emoji: "🧹" }
+      ]
+    },
+    {
+      id: "evening", name: "Evening Routine", emoji: "🌙",
+      completeIcon: "✨", completeTitle: "Time to <em>rest</em>",
+      completeSubtitle: "Evening routine done.<br>Sleep well.",
+      steps: [
+        { name: "Get into pyjamas", duration: 3, emoji: "💗" },
+        { name: "Remove contacts and makeup", duration: 3, emoji: "🧴" },
+        { name: "Take vitamins", duration: 1, emoji: "💊" },
+        { name: "Tidy up", duration: 3, emoji: "🧹" },
+        { name: "Fill water bottle", duration: 1, emoji: "💧" },
+        { name: "Floss", duration: 4, emoji: "🦷" },
+        { name: "Brush teeth", duration: 3, emoji: "🪥" },
+        { name: "Wash hands and face", duration: 2, emoji: "🫧" },
+        { name: "Skincare", duration: 3, emoji: "✨" },
+        { name: "Book practice rooms", duration: 2, emoji: "📅" },
+        { name: "Put things to charge", duration: 1, emoji: "🔋" },
+        { name: "Mindfulness journal", duration: 3, emoji: "📓" },
+        { name: "Set alarm", duration: 1, emoji: "⏰" }
+      ]
+    }
+  ];
+  let activeRoutine = null;
+  let currentStep = 0;
+  let timeRemaining = 0;
+  let isOvertime = false;
+  let overtimeSeconds = 0;
+  let isPaused = false;
+  let timerInterval = null;
+  let routineStartTime = null;
+  const CIRC = 553;
+
+  function playChime() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [523.25, 659.25, 783.99].forEach((freq, i) => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine'; osc.frequency.value = freq;
+        const t = ctx.currentTime + i * 0.18;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.18, t + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+        osc.start(t); osc.stop(t + 0.7);
+      });
+    } catch(e) {}
+  }
+
+  function buildMenu() {
+    document.getElementById('menu-list').innerHTML = routines.map(r => {
+      const total = r.steps.reduce((s, x) => s + x.duration, 0);
+      return `<div class="menu-item" onclick="selectRoutine('${r.id}')">
+        <div class="menu-emoji">${r.emoji}</div>
+        <div class="menu-info">
+          <div class="menu-name">${r.name}</div>
+          <div class="menu-meta">${r.steps.length} steps · ${total} mins</div>
+        </div>
+        <div class="menu-arrow">›</div>
+      </div>`;
+    }).join('');
+  }
+
+  function selectRoutine(id) {
+    activeRoutine = routines.find(r => r.id === id);
+    const total = activeRoutine.steps.reduce((s, x) => s + x.duration, 0);
+    const words = activeRoutine.name.split(' ');
+    const last = words.pop();
+    document.getElementById('ov-title').innerHTML =
+      activeRoutine.emoji + ' ' + (words.length ? words.join(' ') + ' ' : '') + `<em>${last}</em>`;
+    document.getElementById('ov-sub').textContent =
+      `${total} minutes total · ${activeRoutine.steps.length} steps`;
+    document.getElementById('steps-list').innerHTML = activeRoutine.steps.map((s, i) => `
+      <div class="step-item">
+        <div class="step-num">${i + 1}</div>
+        <div class="step-info">
+          <div class="step-name">${s.name}</div>
+          <div class="step-dur">${s.duration} min${s.duration > 1 ? 's' : ''}</div>
+        </div>
+        <div class="step-emoji">${s.emoji}</div>
+      </div>`).join('');
+    showScreen('screen-overview');
+  }
+
+  function startRoutine() {
+    currentStep = 0; isPaused = false;
+    routineStartTime = Date.now();
+    showScreen('screen-timer');
+    loadStep(0);
+  }
+
+  function loadStep(i) {
+    const s = activeRoutine.steps[i];
+    timeRemaining = s.duration * 60;
+    isOvertime = false; overtimeSeconds = 0; isPaused = false;
+    clearInterval(timerInterval);
+    document.getElementById('current-emoji').textContent = s.emoji;
+    const words = s.name.split(' '), last = words.pop(), rest = words.join(' ');
+    document.getElementById('current-step-name').innerHTML =
+      rest ? `${rest} <em>${last}</em>` : `<em>${last}</em>`;
+    const nx = activeRoutine.steps[i + 1];
+    document.getElementById('next-up').textContent = nx ? `Next: ${nx.name}` : 'Last step!';
+    document.getElementById('progress-text').textContent = `${i + 1} of ${activeRoutine.steps.length}`;
+    document.getElementById('progress-bar').style.width = `${(i / activeRoutine.steps.length) * 100}%`;
+    document.getElementById('pause-btn').textContent = 'Pause';
+    document.getElementById('timer-circle-wrap').classList.remove('alert');
+    updateDisplay();
+    const upcoming = activeRoutine.steps.slice(i + 1, i + 5);
+    const uc = document.getElementById('upcoming-items');
+    uc.innerHTML = upcoming.length
+      ? upcoming.map(x => `<div class="upcoming-item"><div>${x.emoji} ${x.name}</div><div class="ui-time">${x.duration} min${x.duration > 1 ? 's' : ''}</div></div>`).join('')
+      : '<div class="upcoming-item" style="color:var(--light);font-style:italic;">That\'s everything!</div>';
+    timerInterval = setInterval(tick, 1000);
+  }
+
+  function tick() {
+    if (isPaused) return;
+    if (!isOvertime) {
+      timeRemaining--;
+      if (timeRemaining <= 0) {
+        timeRemaining = 0; isOvertime = true; overtimeSeconds = 0;
+        playChime();
+        document.getElementById('timer-circle-wrap').classList.add('alert');
+      }
+    } else {
+      overtimeSeconds++;
+      if (overtimeSeconds % 60 === 0) playChime();
+    }
+    updateDisplay();
+  }
+
+  function updateDisplay() {
+    const te = document.getElementById('timer-time');
+    const tl = document.getElementById('timer-label');
+    const arc = document.getElementById('timer-arc');
+    const total = activeRoutine.steps[currentStep].duration * 60;
+    if (!isOvertime) {
+      te.textContent = fmt(timeRemaining); te.classList.remove('overtime');
+      tl.textContent = 'remaining'; tl.classList.remove('overtime');
+      arc.style.strokeDashoffset = CIRC * (1 - timeRemaining / total);
+      arc.style.stroke = 'var(--rose)';
+    } else {
+      te.textContent = '+' + fmt(overtimeSeconds); te.classList.add('overtime');
+      tl.textContent = 'over time'; tl.classList.add('overtime');
+      arc.style.strokeDashoffset = CIRC;
+      arc.style.stroke = 'var(--red)';
+    }
+  }
+
+  function fmt(s) {
+    return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+  }
+
+  function togglePause() {
+    isPaused = !isPaused;
+    document.getElementById('pause-btn').textContent = isPaused ? 'Resume' : 'Pause';
+  }
+
+  function nextStep() {
+    clearInterval(timerInterval);
+    currentStep++;
+    if (currentStep >= activeRoutine.steps.length) {
+      const elapsed = Math.round((Date.now() - routineStartTime) / 1000);
+      document.getElementById('complete-icon').textContent = activeRoutine.completeIcon;
+      document.getElementById('complete-title').innerHTML = activeRoutine.completeTitle;
+      document.getElementById('complete-subtitle').innerHTML = activeRoutine.completeSubtitle;
+      document.getElementById('stat-total-time').textContent = fmt(elapsed);
+      document.getElementById('stat-steps').textContent =
+        `${activeRoutine.steps.length} of ${activeRoutine.steps.length}`;
+      document.getElementById('progress-bar').style.width = '100%';
+      showScreen('screen-complete');
+    } else {
+      loadStep(currentStep);
+    }
+  }
+
+  function goBackToOverview() {
+    clearInterval(timerInterval);
+    showScreen('screen-overview');
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  buildMenu();
+</script>
+</body>
+</html>
